@@ -408,7 +408,7 @@ if($msmEnabled != "true"){
 	//
 	// =====================================	
 	
-	$tables = ($DB->get_records_sql('SELECT table_name AS "Table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size_mb", table_rows AS table_rows FROM information_schema.TABLES WHERE table_schema = "moodledev" ORDER BY (table_name) ASC;'));
+	$tables = ($DB->get_records_sql("SELECT table_name AS 'Table', ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size_mb', table_rows AS table_rows FROM information_schema.TABLES WHERE table_schema = '".$CFG->dbname."' ORDER BY (table_name) ASC;"));
 	$total_db_size = 0;
 	$total_db_rows = 0;
 	foreach($tables as $table){

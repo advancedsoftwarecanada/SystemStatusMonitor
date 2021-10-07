@@ -100,10 +100,10 @@ if($view == ""){
 	$view = "cpu_ram_disk";
 }
 
-$msm_config_license_key = $DB->get_record_sql('SELECT * FROM mdl_config_plugins WHERE plugin = "local_msm" AND name="license_key"', array(1));
-$msm_config_message = $DB->get_record_sql('SELECT * FROM mdl_config_plugins WHERE plugin = "local_msm" AND name="message"', array(1));
-$msm_config_status = $DB->get_record_sql('SELECT * FROM mdl_config_plugins WHERE plugin = "local_msm" AND name="status"', array(1));
-$msm_config_enabled = $DB->get_record_sql('SELECT * FROM mdl_config_plugins WHERE plugin = "local_msm" AND name="enabled"', array(1));
+$msm_config_license_key = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='license_key'", array(1));
+$msm_config_message = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='message'", array(1));
+$msm_config_status = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='status'", array(1));
+$msm_config_enabled = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='enabled'", array(1));
 
 $msm_time1 = date("Y-m-d"). " 00:00";
 $msm_time2 = date("Y-m-d"). " 23:59";

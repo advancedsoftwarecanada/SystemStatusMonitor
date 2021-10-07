@@ -408,7 +408,27 @@ if($msmEnabled != "true"){
 	//
 	// =====================================	
 	
-	$tables = ($DB->get_records_sql("SELECT table_name AS 'Table', ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size_mb', table_rows AS table_rows FROM information_schema.TABLES WHERE table_schema = '".$CFG->dbname."' ORDER BY (table_name) ASC;"));
+	$database_type = 1;
+	if($CFG->dbtype == "mariadb"){
+		$database_type = 1;
+	}
+	if($CFG->dbtype == "pgsql"){
+		$database_type = 2;
+	}
+	
+	
+	if($database_type == 1){
+		$tables = ($DB->get_records_sql("SELECT table_name AS 'Table', ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size_mb', table_rows AS table_rows FROM information_schema.TABLES WHERE table_schema = '".$CFG->dbname."' ORDER BY (table_name) ASC;"));
+	}
+	
+	if($database_type == 2){
+		$tables = ($DB->get_records_sql("SELECT pg_size_pretty(pg_total_relation_size(relid)) as Size_mb from pg_catalog.pg_statio_user_tables"));
+	}
+	
+
+	
+	
+	
 	$total_db_size = 0;
 	$total_db_rows = 0;
 	foreach($tables as $table){

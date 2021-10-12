@@ -30,6 +30,19 @@ if($msmEnabled != "true"){
 	die();
 }
 
+	// =================================
+	//
+	// Support multiple database types
+	//
+	// =================================
+	$database_type = 1;
+	if($CFG->dbtype == "mariadb"){
+		$database_type = 1;
+	}
+	if($CFG->dbtype == "pgsql"){
+		$database_type = 2;
+	}
+	
 
 	$runtime = time();
 
@@ -94,7 +107,7 @@ if($msmEnabled != "true"){
 						$data = new stdClass();
 						$data->type = "cpu_load";
 						$data->data1 = $runtime;
-						$data->data2 = $load;
+						$data->data2 = round($load);
 						$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
 						
                         break;
@@ -128,6 +141,16 @@ if($msmEnabled != "true"){
 
                     // Invert percentage to get CPU time, not idle time
                     $load = 100 - ($statData2[3] * 100 / $cpuTime);
+					
+					// --------
+					// INSERT
+					// --------
+					$data = new stdClass();
+					$data->type = "cpu_load";
+					$data->data1 = $runtime;
+					$data->data2 = round($load);
+					$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
+					
                 }
             }
         }
@@ -145,8 +168,7 @@ if($msmEnabled != "true"){
 	// MEMORY
 
 	// Returns used memory (either in percent (without percent sign) or free and overall in bytes)
-    function getServerMemoryUsage($getPercentage=true)
-    {
+    function getServerMemoryUsage($getPercentage=true){
         $memoryTotal = null;
         $memoryFree = null;
 
@@ -261,7 +283,7 @@ if($msmEnabled != "true"){
 	$data = new stdClass();
 	$data->type = "memory_load";
 	$data->data1 = $runtime;
-	$data->data2 = getServerMemoryUsage(true);
+	$data->data2 = round(getServerMemoryUsage(true));
 	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
 	
 	
@@ -269,14 +291,16 @@ if($msmEnabled != "true"){
 	
 	
 	if (stristr(PHP_OS, "win")) {
+		
 		// --------
 		// INSERT
 		// --------
 		$data = new stdClass();
 		$data->type = "disk_total";
 		$data->data1 = $runtime;
-		$data->data2 = (100-(disk_free_space("C:") / disk_total_space("C:"))*100) ;
+		$data->data2 = round(100-(disk_free_space("C:") / disk_total_space("C:"))*100) ;
 		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
+		
 	}else{
 		
 		// --------
@@ -285,7 +309,7 @@ if($msmEnabled != "true"){
 		$data = new stdClass();
 		$data->type = "disk_total";
 		$data->data1 = $runtime;
-		$data->data2 = (100-(disk_free_space("/") / disk_total_space("/"))*100) ;
+		$data->data2 = round(100-(disk_free_space("/") / disk_total_space("/"))*100) ;
 		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
 		
 	}
@@ -299,7 +323,8 @@ if($msmEnabled != "true"){
 			is_file($path) && $size += filesize($path);
 			is_dir($path)  && $size += get_dir_size($path);
 		}
-		return $size/1000;
+		
+		return round(($size/1024));
 	} 
 	
 	
@@ -395,6 +420,37 @@ if($msmEnabled != "true"){
 	
 	
 	
+	// =====================================
+	//
+	//
+	// AUTOMATED BACKUP DIRECTORY
+	//
+	//
+	// =====================================
+	$tables = ($DB->get_records_sql("SELECT * FROM {config_plugins} WHERE plugin='backup' AND name='backup_auto_destination' "));
+	foreach($tables as $table){
+		
+		// --------
+		// INSERT
+		// --------
+		$data = new stdClass();
+		$data->type = "disk_moodle_backup_auto_destination";
+		$data->data1 = $runtime;
+		$data->data2 = get_dir_size($table->value);
+		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+		
+		
+		// --------
+		// INSERT
+		// --------
+		$data = new stdClass();
+		$data->type = "disk_total_moodle_backup_auto_destination";
+		$data->data1 = $runtime;
+		$data->data2 = round(100-(disk_free_space($table->value) / disk_total_space($table->value))*100) ;
+		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
+		
+	}
+	
 	
 	
 	
@@ -408,74 +464,133 @@ if($msmEnabled != "true"){
 	//
 	// =====================================	
 	
-	$database_type = 1;
-	if($CFG->dbtype == "mariadb"){
-		$database_type = 1;
-	}
-	if($CFG->dbtype == "pgsql"){
-		$database_type = 2;
-	}
-	
-	
+
+	// ==============
+	// DATABASE 1 
+	// ==============
 	if($database_type == 1){
 		$tables = ($DB->get_records_sql("SELECT table_name AS 'Table', ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size_mb', table_rows AS table_rows FROM information_schema.TABLES WHERE table_schema = '".$CFG->dbname."' ORDER BY (table_name) ASC;"));
-	}
-	
-	if($database_type == 2){
-		$tables = ($DB->get_records_sql("SELECT pg_size_pretty(pg_total_relation_size(relid)) as Size_mb from pg_catalog.pg_statio_user_tables"));
-	}
-	
-
-	
-	
-	
-	$total_db_size = 0;
-	$total_db_rows = 0;
-	foreach($tables as $table){
 		
-		//var_dump($table);
+		$total_db_size = 0;
+		$total_db_rows = 0;
+		foreach($tables as $table){
+			
+			//var_dump($table);
+			
+			// echo ("$table->table | $table->size_mb | $table->table_rows <br />");
+			
+			// --------
+			// INSERT
+			// --------
+			$data = new stdClass();
+			$data->type = "database_table";
+			$data->data1 = $runtime;
+			$data->data2 = $table->table;
+			$data->data3 = $table->size_mb;
+			$data->data4 = $table->table_rows;
+			
+			$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+			
+			
+			$total_db_size += $table->size_mb;
+			$total_db_rows += $table->table_rows;
+			
+		}
 		
-		// echo ("$table->table | $table->size_mb | $table->table_rows <br />");
-		
+		// echo " <br /> TOTAL DB SIZE: $total_db_size <br />";
+		// echo " <br /> TOTAL DB ROWS: $total_db_rows <br />";
+			
 		// --------
 		// INSERT
 		// --------
 		$data = new stdClass();
-		$data->type = "database_table";
+		$data->type = "database_total_size";
 		$data->data1 = $runtime;
-		$data->data2 = $table->table;
-		$data->data3 = $table->size_mb;
-		$data->data4 = $table->table_rows;
-		
+		$data->data2 = $total_db_size;
 		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+
+		// --------
+		// INSERT
+		// --------
+		$data = new stdClass();
+		$data->type = "database_total_rows";
+		$data->data1 = $runtime;
+		$data->data2 = $total_db_rows;
+		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);		
 		
-		
-		$total_db_size += $table->size_mb;
-		$total_db_rows += $table->table_rows;
+		var_dump($total_db_size);
+		var_dump($total_db_rows);
 		
 	}
 	
-	// echo " <br /> TOTAL DB SIZE: $total_db_size <br />";
-	// echo " <br /> TOTAL DB ROWS: $total_db_rows <br />";
+	// ==============
+	// DATABASE 2 
+	// ==============
+	if($database_type == 2){
 		
-	// --------
-	// INSERT
-	// --------
-	$data = new stdClass();
-	$data->type = "database_total_size";
-	$data->data1 = $runtime;
-	$data->data2 = $total_db_size;
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+		/*
+		$tables = ($DB->get_records_sql("SELECT
+			  pgClass.relname   AS tableName,
+			  pgClass.reltuples AS rowCount
+			FROM
+			  pg_class pgClass
+			INNER JOIN
+			  pg_namespace pgNamespace ON (pgNamespace.oid = pgClass.relnamespace)
+			WHERE
+			  pgNamespace.nspname NOT IN ('pg_catalog', 'information_schema') AND
+			  pgClass.relkind='r'"));
+		
+		$total_db_size = 0;
+		$total_db_rows = 0;
+		foreach($tables as $table){
+			
+			//var_dump($table);
+			
+			// echo ("$table->table | $table->size_mb | $table->table_rows <br />");
+			
+			// --------
+			// INSERT
+			// --------
+			$data = new stdClass();
+			$data->type = "database_table";
+			$data->data1 = $runtime;
+			$data->data2 = $table->table;
+			$data->data3 = $table->size_mb;
+			$data->data4 = $table->table_rows;
+			
+			$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+			
+			
+			$total_db_size += $table->size_mb;
+			$total_db_rows += $table->table_rows;
+			
+		}
+		
+		// echo " <br /> TOTAL DB SIZE: $total_db_size <br />";
+		// echo " <br /> TOTAL DB ROWS: $total_db_rows <br />";
+			
+		// --------
+		// INSERT
+		// --------
+		$data = new stdClass();
+		$data->type = "database_total_size";
+		$data->data1 = $runtime;
+		$data->data2 = $total_db_size;
+		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
 
-	// --------
-	// INSERT
-	// --------
-	$data = new stdClass();
-	$data->type = "database_total_rows";
-	$data->data1 = $runtime;
-	$data->data2 = $total_db_rows;
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);		
-		
+		// --------
+		// INSERT
+		// --------
+		$data = new stdClass();
+		$data->type = "database_total_rows";
+		$data->data1 = $runtime;
+		$data->data2 = $total_db_rows;
+		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);		
+		*/
+	
+	}
+	
+	
 	
 	
 	//echo 'success';

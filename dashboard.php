@@ -129,11 +129,13 @@ if($_GET['msm_time1']!=""){
 ?>
 
 <div style="float:left; width:80%;">
-  <a href="/local/msm/dashboard.php?view=cpu_ram_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" onclick="open_msm_nav('msm_tab_1')">CPU, RAM, Disk</a>
-  <a href="/local/msm/dashboard.php?view=moodle_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" onclick="open_msm_nav('msm_tab_2')">Moodle Disk</a>
-  <a href="/local/msm/dashboard.php?view=database_overview&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" onclick="open_msm_nav('msm_tab_3')">Database Overview</a>
-  <a href="/local/msm/dashboard.php?view=database_details&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" onclick="open_msm_nav('msm_tab_4')">Database Details</a>
-  <a href="/local/msm/dashboard.php?view=settings&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" onclick="open_msm_nav('msm_tab_settings')">Settings</a>
+  <a href="/local/msm/dashboard.php?view=cpu_ram_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >CPU, RAM, Disk</a>
+  <a href="/local/msm/dashboard.php?view=moodle_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Moodle Disk</a>
+  <a href="/local/msm/dashboard.php?view=automated_backup_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Automated Backups Disk</a>
+  <a href="/local/msm/dashboard.php?view=database_overview&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Database Overview</a>
+  <!-- <a href="/local/msm/dashboard.php?view=database_details&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Database Details</a> -->
+  <a href="/local/msm/dashboard.php?view=settings&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Settings</a>
+  
 </div>
 
 <div style="float:right; width:20%;">
@@ -324,7 +326,7 @@ if($msm_valid_report_time == true){
 							datasets: [
 							
 							{
-								label: 'CPU Load',
+								label: 'CPU Load %',
 								data: [
 									<?php 
 										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."' ORDER BY data1 DESC", array(1));
@@ -343,7 +345,7 @@ if($msm_valid_report_time == true){
 							
 							},{
 								
-								label: 'Memory Load',
+								label: 'Memory Load %',
 								data: [
 									<?php 
 										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'memory_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."' ORDER BY data1 DESC", array(1));
@@ -431,7 +433,7 @@ if($msm_valid_report_time == true){
 								datasets: [
 								
 								{
-									label: 'dirroot',
+									label: 'dirroot (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_dirroot' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -450,7 +452,7 @@ if($msm_valid_report_time == true){
 								
 								},{
 									
-									label: 'Libdir',
+									label: 'libdir (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_libdir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -468,7 +470,7 @@ if($msm_valid_report_time == true){
 									borderWidth: 1
 								},{
 									
-									label: 'dataroot',
+									label: 'dataroot (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_dataroot' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -486,7 +488,7 @@ if($msm_valid_report_time == true){
 									borderWidth: 1
 								},{
 									
-									label: 'tempdir',
+									label: 'tempdir (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_tempdir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -504,7 +506,7 @@ if($msm_valid_report_time == true){
 									borderWidth: 1
 								},{
 									
-									label: 'cachedir',
+									label: 'cachedir (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_cachedir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -522,7 +524,7 @@ if($msm_valid_report_time == true){
 									borderWidth: 1
 								},{
 									
-									label: 'localcachedir',
+									label: 'localcachedir (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_localcachedir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -590,7 +592,7 @@ if($msm_valid_report_time == true){
 								datasets: [
 								
 								{
-									label: 'Database Size',
+									label: 'Database Size (MB)',
 									data: [
 										<?php 
 											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'database_total_size' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
@@ -650,6 +652,160 @@ if($msm_valid_report_time == true){
 					</div>
 					
 			<?php } ?>
+			
+			
+			
+			
+			
+			
+			
+			
+			<?php
+			if( $view == "automated_backup_disk" ){
+				
+				?>
+				
+					<div id="msm_tab_3" class="msm_nav">
+
+
+						<h2>Automated Backup Folder</h2>
+						<p>
+							<a href="/admin/settings.php?section=automated" target="_blank">Edit Moodle Backup Settings</a>
+						</p>
+						
+						<canvas id="chart_database_size_rows" width="400" height="100"></canvas>
+						<script>
+						var ctx3 = document.getElementById('chart_database_size_rows');
+						var chart_database_size_rows = new Chart(ctx3, {
+							type: 'line',
+							data: {
+								labels: [
+									<?php
+										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_total_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
+										foreach($records as $record){
+											echo date('"m/d h:i"', $record->data1).",";
+										}
+									?>
+								],
+								datasets: [
+								
+								{
+									label: 'Backup Disk Size %',
+									data: [
+										<?php 
+											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_total_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
+											foreach($records as $record){
+											  echo $record->data2.",";
+											}
+										?>
+									],
+									backgroundColor: [
+										'rgba(0, 90, 0, 0.08)',
+									],
+									borderColor: [
+										'rgba(0, 90, 0, 0.5)',
+									],
+									borderWidth: 1
+								
+								},
+								
+								]
+							},
+							options: {
+								animation: {
+									duration: 0 // general animation time
+								},
+								scales: {
+									yAxes: [{
+										ticks: {
+											beginAtZero: true,
+											suggestedMin: 0,
+											suggestedMax: 100
+										}
+									}]
+								}
+							}
+						});
+						</script>
+						
+						
+						
+						
+						<canvas id="disk_moodle_backup_auto_destination" width="400" height="100"></canvas>
+						<script>
+						var ctx_disk_moodle_backup_auto_destination = document.getElementById('disk_moodle_backup_auto_destination');
+						var disk_moodle_backup_auto_destination = new Chart(ctx_disk_moodle_backup_auto_destination, {
+							type: 'line',
+							data: {
+								labels: [
+									<?php
+										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
+										foreach($records as $record){
+											echo date('"m/d h:i"', $record->data1).",";
+										}
+									?>
+								],
+								datasets: [
+								
+								{
+									label: 'Backup Disk Size (MB)',
+									data: [
+										<?php 
+											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
+											foreach($records as $record){
+											  echo ($record->data2/1024).",";
+											}
+										?>
+									],
+									backgroundColor: [
+										'rgba(90, 90, 0, 0.08)',
+									],
+									borderColor: [
+										'rgba(90, 90, 0, 0.5)',
+									],
+									borderWidth: 1
+								
+								},
+								
+								]
+							},
+							options: {
+								animation: {
+									duration: 0 // general animation time
+								},
+								scales: {
+									yAxes: [{
+										ticks: {
+											beginAtZero: true,
+											suggestedMin: 0,
+											suggestedMax: 100
+										}
+									}]
+								}
+							}
+						});
+						</script>
+						
+						
+						
+
+
+					</div>
+					
+			<?php } ?>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 
 			<?php
 			if( $view == "database_details" ){

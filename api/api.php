@@ -1,28 +1,35 @@
 <?php
 
-	require_once("../../../config.php");
-	global $DB;
+require_once("../../../config.php");
+global $DB;
 
 
 if($_GET['mode'] == "activate"){
-		
+	
 
 	// https://woosoftwarelicense.com/documentation/api-methods/
 
 	//extract data from the post
 	//set POST variables
 
-	$url = 'https://moodlesystemmonitor.com/';
 	
 	$msm_license_key = $_GET['license_key']; // 'free-2017a27d-f55844dc-88cac637';
 	$msm_enabled = $_GET['enabled']; // 'free-2017a27d-f55844dc-88cac637';
+	$msm_developermode = $_GET['developermode'];
+	$msm_useinternalcron = $_GET['useinternalcron'];
 	
+	
+	
+	$url = 'https://moodlesystemmonitor.com/';
+	if($msm_developermode=="true"){
+		$url = 'https://wordpressdev.moodlesystemmonitor.com/';
+	}
 	
 	$pieces = explode('-',$msm_license_key);
 	$license = "";
 
-	if($pieces[0]=="free"){
-		$license = "MSM-FREE";
+	if($pieces[0]=="pro"){
+		$license = "MSM-PRO";
 	}
 	if($pieces[0]=="business"){
 		$license = "MSM-BUSINESS";
@@ -38,6 +45,7 @@ if($_GET['mode'] == "activate"){
 		'licence_key'       => $msm_license_key,
 		'product_unique_id' => $license,
 		'domain'            => $CFG->wwwroot,
+		'useinternalcron'   => $msm_useinternalcron,
 	);
 
 	//url-ify the data for the POST
@@ -98,50 +106,26 @@ if($_GET['mode'] == "activate"){
 	$DB->execute("DELETE FROM {config_plugins} WHERE plugin='local_msm' AND name='message'");
 	$DB->execute("INSERT INTO {config_plugins} (plugin, name, value) VALUES ('local_msm', 'message', '".$decode[0]->message."')");
 	
-
-}
-
-
-if($_GET['mode'] == "cpuramdisk_labels"){
-
-	$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".$today."' ORDER BY data1 DESC LIMIT 120 ", array(1));
-	foreach($records as $record){
-		echo date('"h:i"', $record->data1).",";
-	}
+	$DB->execute("DELETE FROM {config_plugins} WHERE plugin='local_msm' AND name='developermode'");
+	$DB->execute("INSERT INTO {config_plugins} (plugin, name, value) VALUES ('local_msm', 'developermode', '".$msm_developermode."')");
 	
-}
-
-if($_GET['mode'] == "cpu"){
+	$DB->execute("DELETE FROM {config_plugins} WHERE plugin='local_msm' AND name='useinternalcron'");
+	$DB->execute("INSERT INTO {config_plugins} (plugin, name, value) VALUES ('local_msm', 'useinternalcron', '".$msm_useinternalcron."')");
 	
-	$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".$today."' ORDER BY data1 DESC LIMIT 120 ", array(1));
-	foreach($records as $record){
-		echo $record->data2.",";
-	}
 	
+	
+	
+	
+
 }
 
-
-if($_GET['mode'] == "ram"){
-
-	$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'memory_load' AND data1 >= '".$today."' ORDER BY data1 DESC LIMIT 120 ", array(1));
-	foreach($records as $record){
-		echo $record->data2.",";
+if($_GET['mode'] == "permissions_check"){
+	
+	if(is_siteadmin()){
+		echo 'admin';
 	}
 
 }
-
-
-if($_GET['mode'] == "disk"){
-
-	$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_total' AND data1 >= '".$today."' ORDER BY data1 DESC LIMIT 120 ", array(1));
-	foreach($records as $record){
-		echo $record->data2.",";
-	}
-
-}
-
-
-
 
 
 

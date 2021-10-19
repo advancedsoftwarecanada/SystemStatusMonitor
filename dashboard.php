@@ -3,14 +3,6 @@
 // MSM Dashboard
 // ---------
 ?>
-
-	<script src="/local/msm/js/rome.min.js"></script>
-	<link rel="stylesheet" href="/local/msm/js/rome.min.css" crossorigin="anonymous">
-	
-	<script src="/local/msm/js/chart.js"></script>
-	
-	<link rel="stylesheet" href="/local/msm/js/loader.css?v=1.2" crossorigin="anonymous">
-	
 	
 	<style>
 		/* The snackbar - position it at the bottom and in the middle of the screen */
@@ -62,10 +54,11 @@
 
 		.msm-btn {border:1px solid black; padding:4px; margin:4px;}
 		
-		.msm-generating {text-align:center;}
-		.msm_content {display:none;}
+		
+		
 
 	</style>
+
 
 <?php
 
@@ -97,199 +90,48 @@ $today = $date->getTimestamp();
 
 $view = $_GET['view'];
 if($view == ""){
-	$view = "cpu_ram_disk";
+	$view = "analytics";
 }
+
 
 $msm_config_license_key = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='license_key'", array(1));
 $msm_config_message = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='message'", array(1));
 $msm_config_status = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='status'", array(1));
 $msm_config_enabled = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='enabled'", array(1));
+$msm_config_useinternalcron = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='useinternalcron'", array(1));
 
-$msm_time1 = date("Y-m-d"). " 00:00";
-$msm_time2 = date("Y-m-d"). " 23:59";
 
-$url_parameters = "";
-
-if($_GET['msm_time1']!=""){
-	
-	$msm_time1 = $_GET['msm_time1'];
-	$msm_time2 = $_GET['msm_time2'];
-	
-}else{
-	
-	$msm_time1 = date("Y-m-d") . " 00:00";
-	$msm_time2 = date("Y-m-d") . " 23:59";
-	
+$msm_config_developermode = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='developermode'", array(1));
+$msm_wp_url = "https://moodlesystemmonitor.com/";
+if($msm_config_developermode->value=='true'){
+	$msm_wp_url = "https://wordpressdev.moodlesystemmonitor.com/";	
 }
 
-//var_dump($msm_time1);var_dump($msm_time2);
+
+$url_parameters = "";
 
 
 
 ?>
 
-<div style="float:left; width:80%;">
-  <a href="/local/msm/dashboard.php?view=cpu_ram_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >CPU, RAM, Disk</a>
-  <a href="/local/msm/dashboard.php?view=moodle_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Moodle Disk</a>
-  <a href="/local/msm/dashboard.php?view=automated_backup_disk&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Automated Backups Disk</a>
-  <a href="/local/msm/dashboard.php?view=database_overview&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Database Overview</a>
-  <!-- <a href="/local/msm/dashboard.php?view=database_details&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Database Details</a> -->
-  <a href="/local/msm/dashboard.php?view=settings&msm_time1=<?php echo $msm_time1; ?>&msm_time2=<?php echo $msm_time2; ?>" class="msm-btn" >Settings</a>
+<a href="/local/msm/dashboard.php?view=analytics" class="msm-btn" >Analytics</a>
+<a href="/local/msm/dashboard.php?view=settings" class="msm-btn" >Settings</a>
+<a href="/local/msm/dashboard.php?view=msmbar" class="msm-btn" >MSM Bar</a>
+<hr />
+
+
   
 </div>
 
 <div style="float:right; width:20%;">
 
-	<form action="/local/msm/dashboard.php" method="GET">
-		<input id='msm_time1' name='msm_time1' class='input' value='<?php echo $msm_time1; ?>' style="width:100%;" />
-		<input id='msm_time2' name='msm_time2' class='input' value='<?php echo $msm_time2; ?>' style="width:100%;" />
-		<div id="msm_get_report" onclick="msm_get_report()" class="msm-btn" style="width:100%; background-color:green; color:white; text-align:center; cursor:pointer;">Get Report</div>
-	</form>
-	
+
 </div>
 <br style="clear:both;">
 
 
-<hr />
-<div class="msm-generating">
-	GENERATING...
-	<br />
-	<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-</div>
-
-
-
-
-<script>
-	setTimeout(function(){
-		
-		
-		var moment = rome.moment;
-
-		rome(msm_time1);
-		rome(msm_time2);
-		
-		/*
-		rome(sm, { weekStart: 1 });
-		rome(d, { time: false });
-		rome(t, { date: false });
-
-		var picker = rome(ind);
-
-		toggle.addEventListener('click', function () {
-		  if (picker.restore) {
-			picker.restore();
-		  } else {
-			picker.destroy();
-		  }
-		  toggle.innerHTML = picker.restore ? 'Restore <code>rome</code> instance!' : 'Destroy <code>rome</code> instance!';
-		});
-
-		rome(mm, { min: '2013-12-30', max: '2014-10-01' });
-		rome(mmt, { min: '2014-04-30 19:45', max: '2014-09-01 08:30' });
-
-		rome(iwe, {
-		  dateValidator: function (d) {
-			return moment(d).day() !== 6;
-		  }
-		});
-
-		rome(win, {
-		  dateValidator: function (d) {
-			var m = moment(d);
-			var y = m.year();
-			var f = 'MM-DD';
-			var start = moment('12-21', f).year(y).startOf('day');
-			var end = moment('03-19', f).year(y).endOf('day');
-			return m.isBefore(start) && m.isAfter(end);
-		  }
-		});
-
-		rome(tim, {
-		  timeValidator: function (d) {
-			var m = moment(d);
-			var start = m.clone().hour(12).minute(59).second(59);
-			var end = m.clone().hour(18).minute(0).second(1);
-			return m.isAfter(start) && m.isBefore(end);
-		  }
-		});
-		*/
-		
-
-	},1000);
-	
-	function msm_get_report(){
-
-		window.location.href = "/local/msm/dashboard.php?view=<?php echo $view; ?>&msm_time1="+document.getElementById("msm_time1").value+"&msm_time2="+document.getElementById("msm_time2").value;
-
-	
-	}
-
-	function open_msm_nav(navName, open_msm_nav_auto = false) {
-		
-		return false;
-
-		/*
-		if(open_msm_nav_auto == false){
-			window["open_msm_nav_auto"] = false;
-		}
-
-		var i;
-		var x = document.getElementsByClassName("msm_nav");
-		for (i = 0; i < x.length; i++) {
-			x[i].style.display = "none";
-		}
-		document.getElementById(navName).style.display = "block";
-		
-		window.scrollTo(0,0);
-		*/
-	  
-	}
-
-	/*
-	var hash = window.location.hash.substr(1);
-	if(hash.length <= 1){
-		hash = "msm_tab_1";
-	}
-	window["open_msm_nav_auto"] = true;
-
-	setInterval(function(){
-		if(window["open_msm_nav_auto"]==true){
-			open_msm_nav(hash, open_msm_nav_auto, ); // catch all active tab
-		}
-	},1000);
-	*/
-
-</script>
-
-
-
-
-<?php
-
-$msm_valid_report_time = true;
-if( strtotime($msm_time2) - strtotime($msm_time1) <= 0 ){
-	
-	$msm_valid_report_time = false;
-	
-	?>
-		<center>
-			<p>INVALID REPORT TIME!</p>
-		</center>
-		<script>
-			setInterval(function(){
-				
-				jQuery(".msm_content").show();
-			},1000);
-		</script>
-	<?php	
-	
-}
-?>
-
-
 <?php 
-
+$msm_valid_report_time = true;
 if($msm_valid_report_time == true){
 	
 	//var_dump("SELECT * FROM {msm_datacache} WHERE type = 'disk_total' AND data1 >= '".$msm_time1."' AND data1 <= '".$msm_time2."' ORDER BY data1 DESC");
@@ -299,616 +141,26 @@ if($msm_valid_report_time == true){
 
 			<?php
 			
-			if( $view == "cpu_ram_disk" ){
-				
-				
+			if( $view == "analytics" ){
 				?>
-				
-				<div id="msm_tab_1" class="msm_nav">
+					<iframe src="https://processordev.moodlesystemmonitor.com/msmreport/?license_key=<?php echo $msm_config_license_key->value; ?>" style="width:100%; height:600px;" frameBorder="0"></iframe>
+				<?php
+			}
+			?>
 
-					<h2>CPU / Memory / Disk Size</h2>
-					<canvas id="chart_system_realtime" width="400" height="100"></canvas>
-					<script>
-
-
-					var ctx1 = document.getElementById('chart_system_realtime');
-					var chart_system_realtime = new Chart(ctx1, {
-						type: 'line',
-						data: {
-							labels: [
-								<?php
-									$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."' ORDER BY data1 DESC ", array(1));
-									foreach($records as $record){
-										echo date('"m/d h:i"', $record->data1).",";
-									}
-								?>
-							],
-							datasets: [
-							
-							{
-								label: 'CPU Load %',
-								data: [
-									<?php 
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."' ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-										  echo $record->data2.",";
-										}
-									?>
-								],
-								backgroundColor: [
-									'rgba(0, 90, 0, 0.08)',
-								],
-								borderColor: [
-									'rgba(0, 90, 0, 0.5)',
-								],
-								borderWidth: 1
-							
-							},{
-								
-								label: 'Memory Load %',
-								data: [
-									<?php 
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'memory_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."' ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-										  echo $record->data2.",";
-										}
-									?>
-								],
-								backgroundColor: [
-									'rgba(90, 90, 0, 0.08)',
-								],
-								borderColor: [
-									'rgba(90, 90, 0, 0.5)',
-								],
-								borderWidth: 1
-							},{
-								
-								label: 'Disk Used %',
-								data: [
-									<?php 
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_total' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."' ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-										  echo $record->data2.",";
-										}
-									?>
-								],
-								backgroundColor: [
-									'rgba(90, 90, 90, 0.08)',
-								],
-								borderColor: [
-									'rgba(90, 90, 90, 0.5)',
-								],
-								borderWidth: 1
-							},
-							
-							]
-						},
-						options: {
-							animation: {
-								duration: 0 // general animation time
-							},
-							scales: {
-								yAxes: [{
-									ticks: {
-										beginAtZero: true,
-										suggestedMin: 0,
-										suggestedMax: 100
-									}
-								}]
-							}
-						}
-					});
-					</script>
-					
-				</div><!-- END NAV -->
-				
-			<?php
-			}?>
-
-
-			<?php
-			if( $view == "moodle_disk" ){
-				?>
-
-
-					<div id="msm_tab_2" class="msm_nav">
-
-						<h2>Moodle System Disk Sizes</h2>
-						<canvas id="chart_moodle_disk" width="400" height="100"></canvas>
-						<script>
-
-
-						var ctx2 = document.getElementById('chart_moodle_disk');
-						var chart_moodle_disk = new Chart(ctx2, {
-							type: 'line',
-							data: {
-								labels: [
-									<?php
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-											echo date('"m/d h:i"', $record->data1).",";
-										}
-									?>
-								],
-								datasets: [
-								
-								{
-									label: 'dirroot (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_dirroot' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(0, 90, 0, 0.08)',
-									],
-									borderColor: [
-										'rgba(0, 90, 0, 0.5)',
-									],
-									borderWidth: 1
-								
-								},{
-									
-									label: 'libdir (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_libdir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(77, 77, 0, 0.08)',
-									],
-									borderColor: [
-										'rgba(77, 77, 0, 0.5)',
-									],
-									borderWidth: 1
-								},{
-									
-									label: 'dataroot (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_dataroot' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(9, 66, 66, 0.08)',
-									],
-									borderColor: [
-										'rgba(9, 66, 66, 0.5)',
-									],
-									borderWidth: 1
-								},{
-									
-									label: 'tempdir (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_tempdir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(55, 55, 155, 0.08)',
-									],
-									borderColor: [
-										'rgba(55, 55, 155, 0.5)',
-									],
-									borderWidth: 1
-								},{
-									
-									label: 'cachedir (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_cachedir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(44, 144, 44, 0.08)',
-									],
-									borderColor: [
-										'rgba(44, 144, 44, 0.5)',
-									],
-									borderWidth: 1
-								},{
-									
-									label: 'localcachedir (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_localcachedir' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(133, 33, 33, 0.08)',
-									],
-									borderColor: [
-										'rgba(133, 33, 33, 0.5)',
-									],
-									borderWidth: 1
-								},
-								
-								]
-							},
-							options: {
-								animation: {
-									duration: 0 // general animation time
-								},
-								scales: {
-									yAxes: [{
-										ticks: {
-											beginAtZero: true,
-											suggestedMin: 0,
-											suggestedMax: 100
-										}
-									}]
-								}
-							}
-						});
-						</script>
-
-					</div>
-					
-				<?php } ?>
-			
-			
-			<?php
-			if( $view == "database_overview" ){
-				
-				?>
-				
-					<div id="msm_tab_3" class="msm_nav">
-
-
-						<h2>Database Size / Database Rows</h2>
-						<canvas id="chart_database_size_rows" width="400" height="100"></canvas>
-						<script>
-						var ctx3 = document.getElementById('chart_database_size_rows');
-						var chart_database_size_rows = new Chart(ctx3, {
-							type: 'line',
-							data: {
-								labels: [
-									<?php
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'cpu_load' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-											echo date('"m/d h:i"', $record->data1).",";
-										}
-									?>
-								],
-								datasets: [
-								
-								{
-									label: 'Database Size (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'database_total_size' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(0, 90, 0, 0.08)',
-									],
-									borderColor: [
-										'rgba(0, 90, 0, 0.5)',
-									],
-									borderWidth: 1
-								
-								},{
-									
-									label: 'Database Rows',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'database_total_rows' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(90, 90, 0, 0.08)',
-									],
-									borderColor: [
-										'rgba(90, 90, 0, 0.5)',
-									],
-									borderWidth: 1
-								},
-								
-								]
-							},
-							options: {
-								animation: {
-									duration: 0 // general animation time
-								},
-								scales: {
-									yAxes: [{
-										ticks: {
-											beginAtZero: true,
-											suggestedMin: 0,
-											suggestedMax: 100
-										}
-									}]
-								}
-							}
-						});
-						</script>
-
-
-					</div>
-					
-			<?php } ?>
-			
-			
-			
-			
-			
-			
-			
-			
-			<?php
-			if( $view == "automated_backup_disk" ){
-				
-				?>
-				
-					<div id="msm_tab_3" class="msm_nav">
-
-
-						<h2>Automated Backup Folder</h2>
-						<p>
-							<a href="/admin/settings.php?section=automated" target="_blank">Edit Moodle Backup Settings</a>
-						</p>
-						
-						<canvas id="chart_database_size_rows" width="400" height="100"></canvas>
-						<script>
-						var ctx3 = document.getElementById('chart_database_size_rows');
-						var chart_database_size_rows = new Chart(ctx3, {
-							type: 'line',
-							data: {
-								labels: [
-									<?php
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_total_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-											echo date('"m/d h:i"', $record->data1).",";
-										}
-									?>
-								],
-								datasets: [
-								
-								{
-									label: 'Backup Disk Size %',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_total_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo $record->data2.",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(0, 90, 0, 0.08)',
-									],
-									borderColor: [
-										'rgba(0, 90, 0, 0.5)',
-									],
-									borderWidth: 1
-								
-								},
-								
-								]
-							},
-							options: {
-								animation: {
-									duration: 0 // general animation time
-								},
-								scales: {
-									yAxes: [{
-										ticks: {
-											beginAtZero: true,
-											suggestedMin: 0,
-											suggestedMax: 100
-										}
-									}]
-								}
-							}
-						});
-						</script>
-						
-						
-						
-						
-						<canvas id="disk_moodle_backup_auto_destination" width="400" height="100"></canvas>
-						<script>
-						var ctx_disk_moodle_backup_auto_destination = document.getElementById('disk_moodle_backup_auto_destination');
-						var disk_moodle_backup_auto_destination = new Chart(ctx_disk_moodle_backup_auto_destination, {
-							type: 'line',
-							data: {
-								labels: [
-									<?php
-										$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-										foreach($records as $record){
-											echo date('"m/d h:i"', $record->data1).",";
-										}
-									?>
-								],
-								datasets: [
-								
-								{
-									label: 'Backup Disk Size (MB)',
-									data: [
-										<?php 
-											$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'disk_moodle_backup_auto_destination' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-											foreach($records as $record){
-											  echo ($record->data2/1024).",";
-											}
-										?>
-									],
-									backgroundColor: [
-										'rgba(90, 90, 0, 0.08)',
-									],
-									borderColor: [
-										'rgba(90, 90, 0, 0.5)',
-									],
-									borderWidth: 1
-								
-								},
-								
-								]
-							},
-							options: {
-								animation: {
-									duration: 0 // general animation time
-								},
-								scales: {
-									yAxes: [{
-										ticks: {
-											beginAtZero: true,
-											suggestedMin: 0,
-											suggestedMax: 100
-										}
-									}]
-								}
-							}
-						});
-						</script>
-						
-						
-						
-
-
-					</div>
-					
-			<?php } ?>
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-
-			<?php
-			if( $view == "database_details" ){
-				?>
-
-					<div id="msm_tab_4" class="msm_nav">
-
-						<h2>Database Detailed View</h2>
-						
-						<?php
-						
-						?>
-						
-						
-						<canvas id="chart_database_tables" width="400" height="100"></canvas>
-						<script>
-						var ctx4 = document.getElementById('chart_database_tables');
-						var chart_database_tables = new Chart(ctx4, {
-							type: 'line',
-							data: {
-							
-									<?php 
-									
-									
-									$records = $DB->get_records_sql("SELECT * FROM {msm_datacache} WHERE type = 'database_table' AND data1 >= '".strtotime($msm_time1)."' AND data1 <= '".strtotime($msm_time2)."'  ORDER BY data1 DESC", array(1));
-									
-									?>
-									labels:[
-										<?php
-										foreach($records as $record){
-											echo date('"m/d h:i"', $record->data1).",";
-										}
-										?>
-									],
-									datasets: [
-										<?php
-										$this_record_type = "";
-										foreach($records as $record){
-											$this_record_type = $record->data2;
-										?>
-											{
-												label: "<?php echo $record->data1; ?>",
-												data:[
-													<?php
-													
-														foreach($records as $record){
-															if($record->data2 == $this_record_type){
-																echo $record->data3.",";
-															}
-														}
-													
-													?>
-													,
-												],
-												backgroundColor: [
-													'rgba(0, 90, 0, 0.08)',
-												],
-												borderColor: [
-													'rgba(0, 90, 0, 0.5)',
-												],
-												borderWidth: 1
-											},
-										<?php
-										}
-									?>
-									]
-										
-										
-										
-								 
-								
-								
-								
-							},
-							options: {
-								animation: {
-									duration: 0 // general animation time
-								},
-								plugins: {
-									legend: false // Hide legend
-								},
-								scales: {
-									xAxes:[{
-										//display:false,
-									}],
-									yAxes: [{
-										ticks: {
-											beginAtZero: true,
-											suggestedMin: 0,
-											suggestedMax: 100
-										}
-									}]
-								}
-							}
-						});
-						</script>
-					</div>
-					
-			<?php } ?>
 			
 			<?php
 
 			if( $view == "settings" ){
+				
+				
+				if($msm_config_developermode->value=='true'){
+					
+					?>
+					<p style="color:red;">DEVELOPER MODE ACTIVE</p>
+					<?php
+				}
+				
 			
 				?>
 
@@ -919,7 +171,7 @@ if($msm_valid_report_time == true){
 						<h3>MSM Status: <strong class="msm_license_status"><?php echo $msm_config_status->value; ?></strong></h3>
 						<p class="msm_license_message"><?php echo $msm_config_message->value; ?></p>
 						<hr />
-						<p><a target="_blank" href="https://moodlesystemmonitor.com/my-account">Manage your license keys</a></p>
+						<p><a target="_blank" href="<?php echo $msm_wp_url; ?>/my-account">Manage your license keys</a></p>
 						<hr />
 					  
 						<?php
@@ -950,24 +202,72 @@ if($msm_valid_report_time == true){
 												<input type="checkbox" name="s_local_msm_enabled" value="1" id="id_s_local_msm_enabled" <?php if($msm_config_enabled->value == "true"){ ?>checked="true" <?php }else{ ?> <?php }?>>
 											</div>
 											<div class="form-description mt-3">
-												<hr>
+												This is required to be checked for server data to be processed and collected
 											</div>
 										</div>
 									</div>
 									
+									<hr>
+									
+									<div class="form-item row" id="admin-enabled">
+										<div class="form-label col-sm-3 text-sm-right">
+											<label for="id_s_local_msm_enabled">
+											Process Data With Server Cron
+											</label>
+										</div>
+										<div class="form-setting col-sm-9">
+											<div class="form-checkbox defaultsnext">
+												<input type="hidden" name="s_local_msm_useinternalcron" value="0">
+												<input type="checkbox" name="s_local_msm_useinternalcron" value="1" id="id_s_local_msm_useinternalcron" <?php if($msm_config_useinternalcron->value == "true"){ ?>checked="true" <?php }else{ ?> <?php }?>>
+											</div>
+											<div class="form-description mt-3">
+												Not usually needed unless your Moodle instance is VPN internal and not accessible to the outside internet
+												<br />
+												Must create a 1 minute cron job for /local/msm/process_msm_internal_cron_every_minute.php
+												<br />
+												This setting will push data out every 1 minute, rather than use polling your Moodle site for data every 1 minute from our servers
+												<br />
+												This is completely independant of Moodle Cron
+											</div>
+										</div>
+									</div>
+									
+									<hr>
+			
+									<div class="form-item row" id="admin-enabled">
+										<div class="form-label col-sm-3 text-sm-right">
+											<label for="id_s_local_msm_enabled">
+											Enable Developer Mode
+											</label>
+										</div>
+										<div class="form-setting col-sm-9">
+											<div class="form-checkbox defaultsnext">
+												<input type="hidden" name="s_local_msm_developermode" value="0">
+												<input type="checkbox" name="s_local_msm_developermode" value="1" id="id_s_local_msm_developermode" <?php if($msm_config_developermode->value == "true"){ ?>checked="true" <?php }else{ ?> <?php }?>>
+											</div>
+											<div class="form-description mt-3">
+												(Very likely not needed!)
+											</div>
+										</div>
+									</div>
+									
+									<hr>
+									
 									<div class="form-item row" id="admin-license_key">
 										<div class="form-label col-sm-3 text-sm-right">
 											<label for="id_s_local_msm_license_key">
-											License Key from <a target="_blank" href="https://MoodleSystemMonitor.com?src=moodle_admin_setting_click&amp;placement=https://dev.moodlesystemmonitor.com">MoodleSystemMonitor.com</a> (FREE TRIAL AVAILABLE!)
+											License Key from <a target="_blank" href="https://MoodleSystemMonitor.com">MoodleSystemMonitor.com</a> 
 											</label>
 										</div>
 										<div class="form-setting col-sm-9">
 											<div class="form-text defaultsnext">
 												<input type="text" name="s_local_msm_license_key" value="<?php echo $msm_config_license_key->value; ?>" size="30" id="id_s_local_msm_license_key" class="form-control msm_license_key">
 											</div>
-											<div class="form-description mt-3"><hr></div>
+											<div class="form-description mt-3"></div>
 										</div>
 									</div>
+									
+									<hr>
 									
 								</fieldset>
 								
@@ -984,7 +284,7 @@ if($msm_valid_report_time == true){
 							function msm_submit(){
 								msm_snackbar("Submitting...");
 								jQuery.post({
-									url:  "/local/msm/api/api.php?mode=activate&license_key="+document.querySelector(".msm_license_key").value+"&enabled="+document.getElementById("id_s_local_msm_enabled").checked,
+									url:  "/local/msm/api/api.php?mode=activate&license_key="+document.querySelector(".msm_license_key").value+"&enabled="+document.getElementById("id_s_local_msm_enabled").checked+"&developermode="+document.getElementById("id_s_local_msm_developermode").checked+"&useinternalcron="+document.getElementById("id_s_local_msm_useinternalcron").checked,
 									data: [],
 								}).done(function(data) {
 									
@@ -1010,7 +310,50 @@ if($msm_valid_report_time == true){
 
 					</div><!-- END NAV -->
 					
-			<?php } ?>
+			<?php } 
+			
+			if( $view == "msmbar" ){
+				
+				?>
+				
+				MSM Bar Settings
+				<hr />
+				
+<p><a target="_blank" href="/admin/settings.php?section=additionalhtml">Open Additional HTML Settings</a></p>
+					
+					
+					Copy this into your additional "Before BODY is closed":
+					<textarea style="width:100%; height:300px;">
+<!-- www.MoodleSystemMonitor.com MSMBAR Loader -->
+<script>
+
+	var xhttp = new XMLHttpRequest();
+	console.log("Checking MSM Bar permission");
+	xhttp.open("GET",  '/local/msm/api/api.php/?mode=permissions_check', true);
+	xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	xhttp.onreadystatechange = function() {
+	   if (this.readyState == 4 && this.status == 200) {
+
+		// Response
+		var response = this.responseText;
+		console.log(response);
+		if(response=="admin"){
+			var body = document.body;
+			var script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.src = "https://processordev.moodlesystemmonitor.com/api/msmbar?license_key=<?php echo $msm_config_license_key->value; ?>";
+			body.appendChild(script); 
+		}
+
+	   }
+	};
+	xhttp.send();
+	
+</script>
+</textarea>
+<?php
+			}
+		?>
 			
 		</div><!-- END msm_content -->
 		
@@ -1033,11 +376,6 @@ function msm_snackbar(message) {
   // After 3 seconds, remove the show class from DIV
   setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
 }
-
-setInterval(function(){
-	jQuery(".msm-generating").hide();
-	jQuery(".msm_content").show();
-},1000);
 
 </script>
 

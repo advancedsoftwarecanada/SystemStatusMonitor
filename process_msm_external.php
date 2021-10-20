@@ -15,13 +15,20 @@ require_once("../../config.php");
 $msm_config_license_key = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='license_key'", array(1));
 $msm_config_message = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='message'", array(1));
 $msm_config_status = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='status'", array(1));
+
 //$msm_config_enabled = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='enabled'", array(1));
-
-
 $records = $DB->get_records_sql("SELECT * FROM {config_plugins} WHERE plugin='local_msm' AND name='enabled' ", array(1));
 foreach($records as $record){
 	$msm_config_enabled = $record->value;
 }
+
+
+$msm_config_developermode = $DB->get_record_sql("SELECT * FROM {config_plugins} WHERE plugin = 'local_msm' AND name='developermode'", array(1));
+$msm_wp_url = "https://moodlesystemmonitor.com/";
+if($msm_config_developermode->value=='true'){
+	$msm_wp_url = "https://wordpressdev.moodlesystemmonitor.com/";	
+}
+
 
 
 if($msm_config_enabled != "true"){
@@ -422,7 +429,7 @@ if($msm_config_enabled != "true"){
 		$tables = ($DB->get_records_sql("
 			SELECT
 			  pgClass.relname   AS tableName,
-			  pgClass.reltuples AS rowCount
+			  pgClass.reltuples AS rowCount,
 			  pg_relation_size(quote_ident(pgClass.relname)) as size_mb
 			FROM
 			  pg_class pgClass
@@ -439,8 +446,8 @@ if($msm_config_enabled != "true"){
 			$json_response['database_table'][$table->tableName]['size_mb'] = round(($table->size_mb)/1024);
 			$json_response['database_table'][$table->tableName]['table_rows'] = round($table->rowCount);
 			
-			$total_db_size += $table->size_mb;
 			$total_db_rows += $table->table_rows;
+			$total_db_size += $table->size_mb;
 			
 		}
 		$json_response['database_total_size'] = round($total_db_size);

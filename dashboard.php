@@ -142,9 +142,17 @@ if($msm_valid_report_time == true){
 			<?php
 			
 			if( $view == "analytics" ){
-				?>
-					<iframe src="https://processordev.moodlesystemmonitor.com/msmreport/?license_key=<?php echo $msm_config_license_key->value; ?>" style="width:100%; height:600px;" frameBorder="0"></iframe>
-				<?php
+				
+				if($msm_config_developermode->value=='true'){
+					?>
+						<iframe src="https://processordev.moodlesystemmonitor.com/msmreport/?license_key=<?php echo $msm_config_license_key->value; ?>" style="width:100%; height:600px;" frameBorder="0"></iframe>
+					<?php
+				}else{
+					?>
+						<iframe src="https://processordev.moodlesystemmonitor.com/msmreport/?license_key=<?php echo $msm_config_license_key->value; ?>" style="width:100%; height:600px;" frameBorder="0"></iframe>
+					<?php
+				}
+				
 			}
 			?>
 
@@ -341,7 +349,14 @@ if($msm_valid_report_time == true){
 			var body = document.body;
 			var script = document.createElement('script');
 			script.type = 'text/javascript';
-			script.src = "https://processordev.moodlesystemmonitor.com/api/msmbar?license_key=<?php echo $msm_config_license_key->value; ?>";
+			
+			<?php
+			if($msm_config_developermode->value=='true'){
+				?>script.src = "https://processordev.moodlesystemmonitor.com/api/msmbar?license_key=<?php echo $msm_config_license_key->value; ?>";<?php
+			}else{
+				?>script.src = "https://processor.moodlesystemmonitor.com/api/msmbar?license_key=<?php echo $msm_config_license_key->value; ?>";<?php
+			}
+			?>
 			body.appendChild(script); 
 		}
 

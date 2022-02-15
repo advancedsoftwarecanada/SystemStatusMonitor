@@ -112,11 +112,16 @@ $url_parameters = "";
 
 
 
+
+
+var_dump("MAINTANCE MODE:     ".$CFG->maintenance_enabled);
+
+
 ?>
 
-<a href="/local/msm/dashboard.php?view=analytics" class="msm-btn" >Analytics</a>
-<a href="/local/msm/dashboard.php?view=settings" class="msm-btn" >Settings</a>
-<a href="/local/msm/dashboard.php?view=msmbar" class="msm-btn" >MSM Bar</a>
+<a href="<?php echo $CFG->wwwroot; ?>/local/msm/dashboard.php?view=analytics" class="msm-btn" >Analytics</a>
+<a href="<?php echo $CFG->wwwroot; ?>/local/msm/dashboard.php?view=settings" class="msm-btn" >Settings</a>
+<a href="<?php echo $CFG->wwwroot; ?>/local/msm/dashboard.php?view=msmbar" class="msm-btn" >MSM Bar</a>
 <hr />
 
 
@@ -292,7 +297,7 @@ if($msm_valid_report_time == true){
 							function msm_submit(){
 								msm_snackbar("Submitting...");
 								jQuery.post({
-									url:  "/local/msm/api/api.php?mode=activate&license_key="+document.querySelector(".msm_license_key").value+"&enabled="+document.getElementById("id_s_local_msm_enabled").checked+"&developermode="+document.getElementById("id_s_local_msm_developermode").checked+"&useinternalcron="+document.getElementById("id_s_local_msm_useinternalcron").checked,
+									url:  "<?php echo $CFG->wwwroot; ?>/local/msm/api/api.php?mode=activate&license_key="+document.querySelector(".msm_license_key").value+"&enabled="+document.getElementById("id_s_local_msm_enabled").checked+"&developermode="+document.getElementById("id_s_local_msm_developermode").checked+"&useinternalcron="+document.getElementById("id_s_local_msm_useinternalcron").checked,
 									data: [],
 								}).done(function(data) {
 									
@@ -327,7 +332,7 @@ if($msm_valid_report_time == true){
 				MSM Bar Settings
 				<hr />
 				
-<p><a target="_blank" href="/admin/settings.php?section=additionalhtml">Open Additional HTML Settings</a></p>
+<p><a target="_blank" href="<?php echo $CFG->wwwroot; ?>/admin/settings.php?section=additionalhtml">Open Additional HTML Settings</a></p>
 					
 					
 					Copy this into your additional "Before BODY is closed":
@@ -337,7 +342,7 @@ if($msm_valid_report_time == true){
 
 	var xhttp = new XMLHttpRequest();
 	console.log("Checking MSM Bar permission");
-	xhttp.open("GET",  '/local/msm/api/api.php/?mode=permissions_check', true);
+	xhttp.open("GET",  '<?php echo $CFG->wwwroot; ?>/local/msm/api/api.php/?mode=permissions_check', true);
 	xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	xhttp.onreadystatechange = function() {
 	   if (this.readyState == 4 && this.status == 200) {

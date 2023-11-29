@@ -28,50 +28,51 @@
 
 ### About
 
-This project serves as an example for basic interactions with Moodle 4.x.x File Manager. It was initially created to help me learn and understand file management within Moodle, and I decided to share it with the community. Over the years, many people have found it to be a valuable resource. Now that I'm actively employed to work with Moodle, I'm committed to keeping this project updated and useful.
+"Why does my Moodle keep going down?", you ask. System Server Monitor is your solution! Built as a drop in Moodle plugin, SSM can detect
+Moodle specific problems. It hooks into Moodle Cron and detects a huge amount of data within Moodle and even graphs it on a chart. You'll be able to
+see a total size of each Database table, CPU, RAM, Disk, all from within your own Moodle install.
 
 ---
 
 ### Features
 
-- Easy-to-understand example code.
-- Demonstrates file management within Moodle.
-- No external dependencies or complex setup required.
-- New updates and improvements in line with Moodle's development.
+- Drop in plugin for Moodle.
+- Monitor CPU, RAM, Disk
+- Monitor Moodle specific details that other generic software will miss
+- Visualize your entire database on a chart, see where things are growing too quickly and exercise preventative maintaince
+- Forecast trends in your server specs
+- Fix problems before they crash your Moodle!
 
 ---
 
 ### Screenshots
 
-<img src="https://advancedsoftware.ca/assets/img/asecc_filemanager_0.png" alt="Screenshot 0">
-<img src="https://advancedsoftware.ca/assets/img/asecc_filemanager_0-1.png" alt="Screenshot 0-1">
-<img src="https://advancedsoftware.ca/assets/img/asecc_filemanager_1.png" alt="Screenshot 1">
-<img src="https://advancedsoftware.ca/assets/img/asecc_filemanager_2.png" alt="Screenshot 2">
-<img src="https://advancedsoftware.ca/assets/img/asecc_filemanager_3.png" alt="Screenshot 3">
+Coming soon.
 
 ---
 
 ### Getting Started
 
-To get started with FileManager, simply follow one of these steps:
+To get started with System Status Monitor, simply follow one of these steps:
 
 1. Clone this repository to your local machine:
 
    ```bash
-   git clone https://github.com/advancedsoftwarecanada/filemanager.git
+   git clone https://github.com/advancedsoftwarecanada/SystemStatusMonitor.git
 
 2. Add as a submodule to your current Moodle install with Git
 
    ```bash
-   git submodule add https://github.com/advancedsoftwarecanada/filemanager local/filemanager
+   git submodule add https://github.com/advancedsoftwarecanada/SystemStatusMonitor local/systemstatusmonitor
 
 3.
-- Install directly into your Moodle by downloading the zip and extacting to /var/www/yoursite.com/local/filemanager
+- Install directly into your Moodle by downloading the zip and extacting to /var/www/yoursite.com/local/systemstatusmonitor
 - Or access your admin plugins uploader and select the following download
 <br />
-<a href="https://github.com/advancedsoftwarecanada/filemanager/archive/refs/heads/master.zip">Download the current master.zip</a>
+(Downline URL coming soon)
 
 ### Updates
 
-- January 21, 2013: Plugin Created for Moodle 2.x.x
 - November 21, 2023: Updated plugin for Moodle 4.x.x
+- September 27, 2021: Plugin Created for Moodle 3.x.x
+

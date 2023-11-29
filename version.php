@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package local_msm
- * @author Andrew Normore<anormore@yorkvilleu.ca>
+ * @package local_systemstatusmonitor
+ * @author Andrew Normore<andrewnormore@gmail.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright (C) 2019 onwards Yorkville Education Company
+ * @copyright (C) 2019 onwards Advanced Software Engineering Corporation of Canada
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2021000032;
+$plugin->version = 2023112200;
 $plugin->requires = 2017000000;
-$plugin->component = 'local_msm';
+$plugin->component = 'local_systemstatusmonitor';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '3.3.0.0';
+$plugin->release = '4.4.0.0';

@@ -1,4 +1,4 @@
-moodle-local_msm
+moodle-local_systemstatusmonitor
 ==================
 
 Release notes:

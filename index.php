@@ -14,17 +14,17 @@ require_once("../../config.php");
 
 
 
-$records = $DB->get_records_sql("SELECT * FROM {config_plugins} WHERE plugin='local_msm' AND name='enabled' ", array(1));
+$records = $DB->get_records_sql("SELECT * FROM {config_plugins} WHERE plugin='local_systemstatusmonitor' AND name='enabled' ", array(1));
 foreach($records as $record){
-	$msmEnabled = $record->value;
+	$ssmEnabled = $record->value;
 }
 
-if($msmEnabled != "true"){
+if($ssmEnabled != "true"){
 
 	?>
 
 	<h1>Moodle System Monitor is not enabled</h1>
-	<a href="/local/msm/dashboard.php">Click here to enable</a>
+	<a href="/local/systemstatusmonitor/dashboard.php">Click here to enable</a>
 
 	<?php
 	die();
@@ -42,11 +42,11 @@ if($msmEnabled != "true"){
 	if($CFG->dbtype == "pgsql"){
 		$database_type = 2;
 	}
-	
+
 
 	$runtime = time();
 
-	
+
 
 	function _getServerLoadLinuxData(){
         if (is_readable("/proc/stat")){
@@ -84,10 +84,10 @@ if($msmEnabled != "true"){
     }
 
     // Returns server load in percent (just number, without percent sign)
-   
-		
+
+
         $load = null;
-		
+
 
 		// WINDOWS
 		// ----------
@@ -96,11 +96,11 @@ if($msmEnabled != "true"){
             @exec($cmd, $output);
 
             if ($output){
-				
+
                 foreach ($output as $line){
                     if ($line && preg_match("/^[0-9]+\$/", $line)){
                         $load = $line;
-						
+
 						// --------
 						// INSERT
 						// --------
@@ -108,14 +108,14 @@ if($msmEnabled != "true"){
 						$data->type = "cpu_load";
 						$data->data1 = $runtime;
 						$data->data2 = round($load);
-						$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
-						
+						$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
                         break;
                     }
                 }
             }
         }else{
-			
+
 			// LINUX
 			// ----------
             if (is_readable("/proc/stat")){
@@ -141,7 +141,7 @@ if($msmEnabled != "true"){
 
                     // Invert percentage to get CPU time, not idle time
                     $load = 100 - ($statData2[3] * 100 / $cpuTime);
-					
+
 					// --------
 					// INSERT
 					// --------
@@ -149,13 +149,13 @@ if($msmEnabled != "true"){
 					$data->type = "cpu_load";
 					$data->data1 = $runtime;
 					$data->data2 = round($load);
-					$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
-					
+					$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
                 }
             }
         }
 
-   
+
     //----------------------------
 
 
@@ -199,9 +199,9 @@ if($msmEnabled != "true"){
                     }
                 }
             }
-        
+
 		} else {
-			
+
             if (is_readable("/proc/meminfo"))
             {
                 $stats = @file_get_contents("/proc/meminfo");
@@ -268,7 +268,7 @@ if($msmEnabled != "true"){
 	//echo '<br />------MEMORY---------<br />';
     // Memory usage: 4.55 GiB / 23.91 GiB (19.013557664178%)
     $memUsage = getServerMemoryUsage(false);
-    
+
 	/*
 	echo sprintf("Memory usage: %s / %s (%s%%)",
         getNiceFileSize($memUsage["total"] - $memUsage["free"]),
@@ -276,7 +276,7 @@ if($msmEnabled != "true"){
         getServerMemoryUsage(true)
     );
 	*/
-	
+
 	// --------
 	// INSERT
 	// --------
@@ -284,14 +284,14 @@ if($msmEnabled != "true"){
 	$data->type = "memory_load";
 	$data->data1 = $runtime;
 	$data->data2 = round(getServerMemoryUsage(true));
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
-	
-	
-	
-	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
+
+
+
+
 	if (stristr(PHP_OS, "win")) {
-		
+
 		// --------
 		// INSERT
 		// --------
@@ -299,10 +299,10 @@ if($msmEnabled != "true"){
 		$data->type = "disk_total";
 		$data->data1 = $runtime;
 		$data->data2 = round(100-(disk_free_space("C:") / disk_total_space("C:"))*100) ;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
-		
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	}else{
-		
+
 		// --------
 		// INSERT
 		// --------
@@ -310,12 +310,12 @@ if($msmEnabled != "true"){
 		$data->type = "disk_total";
 		$data->data1 = $runtime;
 		$data->data2 = round(100-(disk_free_space("/") / disk_total_space("/"))*100) ;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
-		
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	}
-	
-	
-	
+
+
+
 	function get_dir_size($directory){
 		$size = 0;
 		$files = glob($directory.'/*');
@@ -323,11 +323,11 @@ if($msmEnabled != "true"){
 			is_file($path) && $size += filesize($path);
 			is_dir($path)  && $size += get_dir_size($path);
 		}
-		
+
 		return round(($size/1024));
-	} 
-	
-	
+	}
+
+
 	// =====================================
 	//
 	//
@@ -335,17 +335,17 @@ if($msmEnabled != "true"){
 	//
 	//
 	// =====================================
-	
-	
-	
+
+
+
 	//echo '<BR/><BR/>CURRENT PATH:'.getcwd();
-	
+
 	//echo '<br /> dirroot : '.$CFG->dirroot ;
 	//echo '<br /> Data Root: '.$CFG->dataroot;
-	
+
 	//echo '<br /> dirroot : '.$CFG->wwwroot.' ('.get_dir_size($CFG->wwwroot).')   - $CFG->wwwroot  - Path to moodle index directory in url format.';
-	
-	
+
+
 	/*
 	echo '<br /> dirroot : '.$CFG->dirroot.' ('.get_dir_size($CFG->dirroot).')   - $CFG->dirroot  - Path to moodles library folder on servers filesystem.';
 	echo '<br /> dirroot : '.$CFG->libdir.' ('.get_dir_size($CFG->libdir).')   - $CFG->libdir   - Path to moodles library folder on servers filesystem.';
@@ -357,9 +357,9 @@ if($msmEnabled != "true"){
 	echo '<br /> dirroot : '.$CFG->cachedir.' ('.get_dir_size($CFG->cachedir).')  - $CFG->cachedir - Path to moodles cache directory on servers filesystem (shared by cluster nodes).';
 	echo '<br /> dirroot : '.$CFG->localcachedir.' ('.get_dir_size($CFG->localcachedir).')   - $CFG->localcachedir - Path to moodles local cache directory (not shared by cluster nodes).';
 	*/
-	
-	
-		
+
+
+
 	// --------
 	// INSERT
 	// --------
@@ -367,8 +367,8 @@ if($msmEnabled != "true"){
 	$data->type = "disk_moodle_dirroot";
 	$data->data1 = $runtime;
 	$data->data2 = get_dir_size($CFG->dirroot);
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	// --------
 	// INSERT
 	// --------
@@ -376,8 +376,8 @@ if($msmEnabled != "true"){
 	$data->type = "disk_moodle_libdir";
 	$data->data1 = $runtime;
 	$data->data2 = get_dir_size($CFG->libdir);
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	// --------
 	// INSERT
 	// --------
@@ -385,8 +385,8 @@ if($msmEnabled != "true"){
 	$data->type = "disk_moodle_dataroot";
 	$data->data1 = $runtime;
 	$data->data2 = get_dir_size($CFG->dataroot);
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	// --------
 	// INSERT
 	// --------
@@ -394,8 +394,8 @@ if($msmEnabled != "true"){
 	$data->type = "disk_moodle_tempdir";
 	$data->data1 = $runtime;
 	$data->data2 = get_dir_size($CFG->tempdir);
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	// --------
 	// INSERT
 	// --------
@@ -403,8 +403,8 @@ if($msmEnabled != "true"){
 	$data->type = "disk_moodle_cachedir";
 	$data->data1 = $runtime;
 	$data->data2 = get_dir_size($CFG->cachedir);
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	// --------
 	// INSERT
 	// --------
@@ -412,14 +412,14 @@ if($msmEnabled != "true"){
 	$data->type = "disk_moodle_localcachedir";
 	$data->data1 = $runtime;
 	$data->data2 = get_dir_size($CFG->localcachedir);
-	$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-	
-	
-	
-	
-	
-	
-	
+	$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
+
+
+
+
+
+
 	// =====================================
 	//
 	//
@@ -429,7 +429,7 @@ if($msmEnabled != "true"){
 	// =====================================
 	$tables = ($DB->get_records_sql("SELECT * FROM {config_plugins} WHERE plugin='backup' AND name='backup_auto_destination' "));
 	foreach($tables as $table){
-		
+
 		// --------
 		// INSERT
 		// --------
@@ -437,9 +437,9 @@ if($msmEnabled != "true"){
 		$data->type = "disk_moodle_backup_auto_destination";
 		$data->data1 = $runtime;
 		$data->data2 = get_dir_size($table->value);
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-		
-		
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
+
 		// --------
 		// INSERT
 		// --------
@@ -447,38 +447,38 @@ if($msmEnabled != "true"){
 		$data->type = "disk_total_moodle_backup_auto_destination";
 		$data->data1 = $runtime;
 		$data->data2 = round(100-(disk_free_space($table->value) / disk_total_space($table->value))*100) ;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);
-		
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	// =====================================
 	//
 	//
 	// DATABASE TABLES
-	// DATABASE SIZE / ROWS 
+	// DATABASE SIZE / ROWS
 	//
 	//
-	// =====================================	
-	
+	// =====================================
+
 
 	// ==============
-	// DATABASE 1 
+	// DATABASE 1
 	// ==============
 	if($database_type == 1){
 		$tables = ($DB->get_records_sql("SELECT table_name AS 'Table', ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size_mb', table_rows AS table_rows FROM information_schema.TABLES WHERE table_schema = '".$CFG->dbname."' ORDER BY (table_name) ASC;"));
-		
+
 		$total_db_size = 0;
 		$total_db_rows = 0;
 		foreach($tables as $table){
-			
+
 			//var_dump($table);
-			
+
 			// echo ("$table->table | $table->size_mb | $table->table_rows <br />");
-			
+
 			// --------
 			// INSERT
 			// --------
@@ -488,18 +488,18 @@ if($msmEnabled != "true"){
 			$data->data2 = $table->table;
 			$data->data3 = $table->size_mb;
 			$data->data4 = $table->table_rows;
-			
-			$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-			
-			
+
+			$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
+
 			$total_db_size += $table->size_mb;
 			$total_db_rows += $table->table_rows;
-			
+
 		}
-		
+
 		// echo " <br /> TOTAL DB SIZE: $total_db_size <br />";
 		// echo " <br /> TOTAL DB ROWS: $total_db_rows <br />";
-			
+
 		// --------
 		// INSERT
 		// --------
@@ -507,7 +507,7 @@ if($msmEnabled != "true"){
 		$data->type = "database_total_size";
 		$data->data1 = $runtime;
 		$data->data2 = $total_db_size;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
 
 		// --------
 		// INSERT
@@ -516,18 +516,18 @@ if($msmEnabled != "true"){
 		$data->type = "database_total_rows";
 		$data->data1 = $runtime;
 		$data->data2 = $total_db_rows;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);		
-		
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
 		var_dump($total_db_size);
 		var_dump($total_db_rows);
-		
+
 	}
-	
+
 	// ==============
-	// DATABASE 2 
+	// DATABASE 2
 	// ==============
 	if($database_type == 2){
-		
+
 		/*
 		$tables = ($DB->get_records_sql("SELECT
 			  pgClass.relname   AS tableName,
@@ -539,15 +539,15 @@ if($msmEnabled != "true"){
 			WHERE
 			  pgNamespace.nspname NOT IN ('pg_catalog', 'information_schema') AND
 			  pgClass.relkind='r'"));
-		
+
 		$total_db_size = 0;
 		$total_db_rows = 0;
 		foreach($tables as $table){
-			
+
 			//var_dump($table);
-			
+
 			// echo ("$table->table | $table->size_mb | $table->table_rows <br />");
-			
+
 			// --------
 			// INSERT
 			// --------
@@ -557,18 +557,18 @@ if($msmEnabled != "true"){
 			$data->data2 = $table->table;
 			$data->data3 = $table->size_mb;
 			$data->data4 = $table->table_rows;
-			
-			$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
-			
-			
+
+			$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
+
+
 			$total_db_size += $table->size_mb;
 			$total_db_rows += $table->table_rows;
-			
+
 		}
-		
+
 		// echo " <br /> TOTAL DB SIZE: $total_db_size <br />";
 		// echo " <br /> TOTAL DB ROWS: $total_db_rows <br />";
-			
+
 		// --------
 		// INSERT
 		// --------
@@ -576,7 +576,7 @@ if($msmEnabled != "true"){
 		$data->type = "database_total_size";
 		$data->data1 = $runtime;
 		$data->data2 = $total_db_size;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);	
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
 
 		// --------
 		// INSERT
@@ -585,18 +585,18 @@ if($msmEnabled != "true"){
 		$data->type = "database_total_rows";
 		$data->data1 = $runtime;
 		$data->data2 = $total_db_rows;
-		$lastinsertid = $DB->insert_record('msm_datacache', $data, false);		
+		$lastinsertid = $DB->insert_record('ssm_datacache', $data, false);
 		*/
-	
+
 	}
-	
-	
-	
-	
+
+
+
+
 	//echo 'success';
 	echo (time() - $_SERVER['REQUEST_TIME']);
-	
-	
+
+
 
 
 
@@ -604,20 +604,20 @@ die();
 
 
 /*
-$thisIsmsm = true; // Used to process frontend and backend plugins
+$thisIsssm = true; // Used to process frontend and backend plugins
 
-$msmKey = get_config('local_msm', 'key');
-$msmAmountToProcess = 10;
+$ssmKey = get_config('local_systemstatusmonitor', 'key');
+$ssmAmountToProcess = 10;
 
-$msmPlugin_plugin_NED_block = get_config('local_msm', 'plugin_ned_block_teacher_tools');
-$msmPlugin_plugin_YU_overdueAssignmentsToZero = get_config('local_msm', 'plugin_msm_overdue_assignments');
-
-
-
-echo "msm processing: ".$msmAmountToProcess ;
+$ssmPlugin_plugin_NED_block = get_config('local_systemstatusmonitor', 'plugin_ned_block_teacher_tools');
+$ssmPlugin_plugin_YU_overdueAssignmentsToZero = get_config('local_systemstatusmonitor', 'plugin_ssm_overdue_assignments');
 
 
-if($_GET['key'] != $msmKey){
+
+echo "ssm processing: ".$ssmAmountToProcess ;
+
+
+if($_GET['key'] != $ssmKey){
 	echo "<h1>invalid key</h1>";
 	die();
 }
@@ -676,7 +676,7 @@ $startTime = microtime(true);
 // ----------------------
 
 $refillQue = "empty";
-$ques = $DB->get_records_sql('SELECT id FROM mdl_msm_courseque LIMIT 1', array(1));
+$ques = $DB->get_records_sql('SELECT id FROM mdl_ssm_courseque LIMIT 1', array(1));
 foreach($ques as $que){
 	$refillQue = "full";
 }
@@ -697,7 +697,7 @@ if($refillQue == "empty"){
 		$theCourse->timeadded = time();
 
 		if($theCourse->courseid != 1){ // 1 is the homepage, skip this
-			$lastinsertid = $DB->insert_record('msm_courseque', $theCourse, false);
+			$lastinsertid = $DB->insert_record('ssm_courseque', $theCourse, false);
 		}
 
 		$channelCount++;
@@ -707,12 +707,12 @@ if($refillQue == "empty"){
 
 	}
 
-	$batches = $DB->get_records_sql('SELECT id FROM {msm_logs} WHERE data="new"', array(1));
+	$batches = $DB->get_records_sql('SELECT id FROM {ssm_logs} WHERE data="new"', array(1));
 	foreach($batches as $batch){
-		$DB->execute("UPDATE {msm_logs} SET runtime=".time().", data='complete' WHERE data='new'");
+		$DB->execute("UPDATE {ssm_logs} SET runtime=".time().", data='complete' WHERE data='new'");
 	}
 
-	$DB->execute("INSERT INTO {msm_logs} (time, runtime, amount, type, data) VALUES (".time().", 0, '".count($courses)."', 'batch', 'new')");
+	$DB->execute("INSERT INTO {ssm_logs} (time, runtime, amount, type, data) VALUES (".time().", 0, '".count($courses)."', 'batch', 'new')");
 
 }else{
 	debugMessage("h2", "Que has data, process!");
@@ -723,28 +723,28 @@ if($refillQue == "empty"){
 
 // Channel 1
 $channel1Found = false;
-$scans1 = $DB->get_records_sql('SELECT id FROM mdl_msm_courseque WHERE quechannel = 1 ', array(1));
+$scans1 = $DB->get_records_sql('SELECT id FROM mdl_ssm_courseque WHERE quechannel = 1 ', array(1));
 foreach($scans1 as $scan){
 	$channel1Found = true;
 }
 
 // Channel 2
 $channel2Found = false;
-$scans2 = $DB->get_records_sql('SELECT id FROM mdl_msm_courseque WHERE quechannel = 2 ', array(1));
+$scans2 = $DB->get_records_sql('SELECT id FROM mdl_ssm_courseque WHERE quechannel = 2 ', array(1));
 foreach($scans2 as $scan){
 	$channel2Found = true;
 }
 
 // Channel 3
 $channel3Found = false;
-$scans3 = $DB->get_records_sql('SELECT id FROM mdl_msm_courseque WHERE quechannel = 3 ', array(1));
+$scans3 = $DB->get_records_sql('SELECT id FROM mdl_ssm_courseque WHERE quechannel = 3 ', array(1));
 foreach($scans3 as $scan){
 	$channel3Found = true;
 }
 
 // Channel 4
 $channel4Found = false;
-$scans4 = $DB->get_records_sql('SELECT id FROM mdl_msm_courseque WHERE quechannel = 4 ', array(1));
+$scans4 = $DB->get_records_sql('SELECT id FROM mdl_ssm_courseque WHERE quechannel = 4 ', array(1));
 foreach($scans4 as $scan){
 	$channel4Found = true;
 }
@@ -760,7 +760,7 @@ if($channel4Found && !$channel3Found){
 
 	$newQueChannel = 3;
 	foreach($scans4 as $scan){
-		$DB->execute("UPDATE mdl_msm_courseque SET quechannel=".$newQueChannel." WHERE id=".$scan->id);
+		$DB->execute("UPDATE mdl_ssm_courseque SET quechannel=".$newQueChannel." WHERE id=".$scan->id);
 		$newQueChannel --;
 		if($newQueChannel == 0){
 			$newQueChannel = 3;
@@ -769,10 +769,10 @@ if($channel4Found && !$channel3Found){
 
 }
 if($channel3Found && !$channel2Found){
-	
+
 	$newQueChannel = 2;
 	foreach($scans3 as $scan){
-		$DB->execute("UPDATE mdl_msm_courseque SET quechannel=".$newQueChannel." WHERE id=".$scan->id);
+		$DB->execute("UPDATE mdl_ssm_courseque SET quechannel=".$newQueChannel." WHERE id=".$scan->id);
 		$newQueChannel --;
 		if($newQueChannel == 0){
 			$newQueChannel = 2;
@@ -781,10 +781,10 @@ if($channel3Found && !$channel2Found){
 
 }
 if($channel2Found && !$channel1Found){
-	
+
 	$newQueChannel = 1;
 	foreach($scans2 as $scan){
-		$DB->execute("UPDATE mdl_msm_courseque SET quechannel=".$newQueChannel." WHERE id=".$scan->id);
+		$DB->execute("UPDATE mdl_ssm_courseque SET quechannel=".$newQueChannel." WHERE id=".$scan->id);
 		$newQueChannel --;
 		if($newQueChannel == 0){
 			$newQueChannel = 1;
@@ -806,9 +806,9 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 	debugMessage ("h1", "<div style='color:darkgreen;'>SCANNING CHANNEL: ".$selectedQueChannel."</div>");
 
 	$processThisQue = true;
-	
+
 	// If there is a match detected, 1/2/3/4 it will die, the previous job hasn't finished.
-	$queLocks = $DB->get_records_sql('SELECT * FROM mdl_msm_coursequelocks WHERE quechannel = '.$selectedQueChannel.'', array(1));
+	$queLocks = $DB->get_records_sql('SELECT * FROM mdl_ssm_coursequelocks WHERE quechannel = '.$selectedQueChannel.'', array(1));
 	foreach($queLocks as $queLock){
 
 		debugMessage ("h1", "Previous Que Still Running, EXIT -> Channel: ".$selectedQueChannel);
@@ -819,7 +819,7 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 
 		if((time() - $queLock->time) >= 10){ //Five Minutes = 300s
 			debugMessage("h2", "Que has been running for some time and is perhaps stuck. Removing lock");
-			$DB->execute('DELETE FROM mdl_msm_coursequelocks WHERE id='.$queLock->id);
+			$DB->execute('DELETE FROM mdl_ssm_coursequelocks WHERE id='.$queLock->id);
 		}
 
 		$processThisQue = false;
@@ -837,7 +837,7 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 		$theLock->quechannel = $selectedQueChannel;
 		$theLock->status = "running";
 		$theLock->time = time();
-		$theLockId = $DB->insert_record('msm_coursequelocks', $theLock, true);
+		$theLockId = $DB->insert_record('ssm_coursequelocks', $theLock, true);
 		debugMessage ("p","LOCKING CHANNEL: ".$selectedQueChannel);
 		debugMessage ("p",$theLockId);
 
@@ -846,7 +846,7 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 
 
 		// BEGIN COURSE SCANNING
-		$quedCourses = $DB->get_records_sql('SELECT * FROM mdl_msm_courseque WHERE quechannel = '.$selectedQueChannel.' LIMIT '.$msmAmountToProcess, array(1));
+		$quedCourses = $DB->get_records_sql('SELECT * FROM mdl_ssm_courseque WHERE quechannel = '.$selectedQueChannel.' LIMIT '.$ssmAmountToProcess, array(1));
 		debugMessage ("p","Processing Channel: " .$selectedQueChannel );
 		debugMessage ("p", count($quedCourses) );
 		debugMessage ("p","===========================");
@@ -866,7 +866,7 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 				debugMessage ("p","COURSE FOUND, YOU MAY PROCEED");
 			}else{
 				debugMessage ("p","NO COURSE WAS FOUND -- THE COURSE WAS LIKELY DELETED BETWEEN REAL TIME CYCLE -- REMOVING FROM QUE");
-				$DB->execute('DELETE FROM mdl_msm_courseque WHERE courseid='.$theCourse->courseid);
+				$DB->execute('DELETE FROM mdl_ssm_courseque WHERE courseid='.$theCourse->courseid);
 			}
 
 
@@ -875,44 +875,44 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 
 
 				// no longer using the /plugins/enabled structure, let us run from a database
-				
+
 				//foreach (glob("plugins/enabled/*.php") as $filename){
 				//    include $filename;
 				//}
-				
 
-				if(get_config('local_msm', 'plugin_ned_block_teacher_tools') == "1"){
+
+				if(get_config('local_systemstatusmonitor', 'plugin_ned_block_teacher_tools') == "1"){
 					debugMessage ("p","RUNNING NED BLOCK");
-					require($CFG->dirroot."/blocks/ned_teacher_tools/msm/refresh_all_data.php");
+					require($CFG->dirroot."/blocks/ned_teacher_tools/ssm/refresh_all_data.php");
 				}
-				
-				if(get_config('local_msm', 'plugin_msm_overdue_assignments') == "1"){
+
+				if(get_config('local_systemstatusmonitor', 'plugin_ssm_overdue_assignments') == "1"){
 					debugMessage ("p","YU Overdue Assignments");
 					require("plugins/YU_overdueAssignmentsToZero.php");
 				}
-				
-				if(get_config('local_msm', 'plugin_msm_midterm_grades_cmc') == "1"){
+
+				if(get_config('local_systemstatusmonitor', 'plugin_ssm_midterm_grades_cmc') == "1"){
 					debugMessage ("p","YU Midterms CMC");
 					require("plugins/YU_midterm_grades_CMC.php");
 				}
 
-				if(get_config('local_msm', 'plugin_msm_ghosted_users') == "1"){
+				if(get_config('local_systemstatusmonitor', 'plugin_ssm_ghosted_users') == "1"){
 					debugMessage ("p","YU Ghosted Users");
 					require("plugins/YU_ghosted_users.php");
 				}
-				
-				if(get_config('local_msm', 'plugin_attendance') == "1"){
+
+				if(get_config('local_systemstatusmonitor', 'plugin_attendance') == "1"){
 					debugMessage ("p","YU Attendance");
 					require("plugins/YU_attendance.php");
 				}
 
-				
+
 
 				debugMessage ("p","clearing qued course");
-				$DB->execute('DELETE FROM {msm_courseque} WHERE courseid='.$course->id);
+				$DB->execute('DELETE FROM {ssm_courseque} WHERE courseid='.$course->id);
 
 				$runtimeCourse = "".round( (microtime(true) - $startTimeCourseProcess), 5);
-				$DB->execute("INSERT INTO {msm_logs} (time, runtime, amount, type, data) VALUES (".time().", $runtimeCourse, '1', 'course', $course->id)");
+				$DB->execute("INSERT INTO {ssm_logs} (time, runtime, amount, type, data) VALUES (".time().", $runtimeCourse, '1', 'course', $course->id)");
 
 			}
 
@@ -920,26 +920,26 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 
 
 		debugMessage ("p","clearing qued course:".$theLockId);
-		$DB->execute('DELETE FROM {msm_coursequelocks} WHERE id='.$theLockId);
+		$DB->execute('DELETE FROM {ssm_coursequelocks} WHERE id='.$theLockId);
 
 		debugMessage ("p", '<hr />');
-		debugMessage ("p", '<h1 style="color:green;">COMPLETED '.$msmAmountToProcess.' JOBS SUCCESSFULLY: '.(microtime(true) - $startTime).' seconds</h1>');
+		debugMessage ("p", '<h1 style="color:green;">COMPLETED '.$ssmAmountToProcess.' JOBS SUCCESSFULLY: '.(microtime(true) - $startTime).' seconds</h1>');
 
 		$runtime = "".round( (microtime(true) - $startTime), 5);
 
-		echo "completed $msmAmountToProcess jobs in: ".$runtime." seconds";
+		echo "completed $ssmAmountToProcess jobs in: ".$runtime." seconds";
 
 
 		// ADD LOG
 		// ---------------
-		$msmLog = new stdClass();
-		$msmLog->time = time();
-		$msmLog->runtime = $runtime;
-		$msmLog->amount = $msmAmountToProcess;
+		$ssmLog = new stdClass();
+		$ssmLog->time = time();
+		$ssmLog->runtime = $runtime;
+		$ssmLog->amount = $ssmAmountToProcess;
 
-		var_dump($msmLog);
-		//$lastinsertid = $DB->insert_record('msm_logs', $msmLog, false);
-		$DB->execute("INSERT INTO {msm_logs} (time, runtime, amount, type, data, quechannel) VALUES ($msmLog->time, $msmLog->runtime, $msmLog->amount, 'time', '', $selectedQueChannel)");
+		var_dump($ssmLog);
+		//$lastinsertid = $DB->insert_record('ssm_logs', $ssmLog, false);
+		$DB->execute("INSERT INTO {ssm_logs} (time, runtime, amount, type, data, quechannel) VALUES ($ssmLog->time, $ssmLog->runtime, $ssmLog->amount, 'time', '', $selectedQueChannel)");
 
 
 		// DIE
@@ -948,7 +948,7 @@ for($selectedQueChannel = 1; $selectedQueChannel <= 4; $selectedQueChannel++){
 		// DIE
 		// DIE
 
-		// We do not want to re-run any logic here, other msm jobs should be running already
+		// We do not want to re-run any logic here, other ssm jobs should be running already
 
 	}
 

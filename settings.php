@@ -15,24 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package local_msm
- * @author Andrew Normore<anormore@yorkvilleu.ca>
+ * @package local_systemstatusmonitor
+ * @author Andrew Normore<andrewnormore@gmail.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright (C) 2019 onwards Yorkville Education Company
+ * @copyright (C) 2019 onwards Advanced Software Engineering Corporation of Canada
  */
 
 
 
 if (is_siteadmin()) {
-    $settings = new admin_settingpage('local_msm', get_string('pluginname', 'local_msm'));
+    $settings = new admin_settingpage('local_systemstatusmonitor', get_string('pluginname', 'local_systemstatusmonitor'));
     $ADMIN->add('localplugins', $settings);
 
 
-	
+
 	// Dashboard Link
     $settings->add( new admin_setting_configempty('local_hypercron/local_hypercron',
             "Dashboard View",
-            "<a target='_blank' href='".$CFG->wwwroot."/local/msm/dashboard.php'>Click Here To View MSM Dashbaord</a>"
+            "<a target='_blank' href='".$CFG->wwwroot."/local/systemstatusmonitor/dashboard.php'>Click Here To View ssm Dashbaord</a>"
         )
     );
 
